@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_account_move_form_view_inherit_actualizar_precios" model="ir.ui.view">
+		<field name="name">account.move.form.inherit.actualizar.precios</field>
+		<field name="model">account.move</field>
+		<field name="inherit_id" ref="account.view_move_form" />
+		<field name="arch" type="xml">
+				<button name="action_reverse" position="after">
+                    <field name="last_currency_id" invisible="1" />
+                    <button name="action_actualizar_precios" type="object" 
+                    		string="Actualizar precios"
+                            attrs="{'invisible': ['|',('state', '!=', 'draft'),('last_currency_id','=',False)]}"
+                            class="oe_highlight" groups="base.group_user"/>
+                </button>
+		</field>
+	</record>
+</odoo>
