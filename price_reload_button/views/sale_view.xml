@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_sale_order_form_inherit" model="ir.ui.view">
+		<field name="name">sale.order.form.inherit</field>
+		<field name="model">sale.order</field>
+		<field name="inherit_id" ref="sale.view_order_form" />
+		<field name="arch" type="xml">
+				<button name="action_cancel" position="before">
+                    <button name="action_refresh" type="object" string="Actualizar precios"
+                            class="oe_highlight" groups="base.group_user"/>
+                </button>
+		</field>
+	</record>
+</odoo>
