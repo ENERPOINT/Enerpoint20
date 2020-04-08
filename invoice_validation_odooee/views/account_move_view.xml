@@ -8,7 +8,7 @@
 		    <button name="action_post" position="after">
 		      <button name="action_generar_cfdi" string="Generar CFDI" class="oe_highlight"
                                 type="object" groups="account.group_account_invoice"
-                                attrs="{'invisible': [('state', '!=', 'posted')]}"/>
+                                attrs="{'invisible': ['|',('state', '!=', 'posted'),('l10n_mx_edi_pac_status', '=', 'signed')]}"/>
 		    </button>
 	  </field>
 	</record>
