@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="cuenta_analitica_wizard_form" model="ir.ui.view">
+		<field name="name">cuenta.analitica.wizard.form</field>
+		<field name="model">reporte.por.cuenta.analitca</field>
+		<field name="arch" type="xml">
+			<form>
+				<sheet>
+					<group>
+						<field name="cuenta_analitica_id"/>
+					</group>
+					<footer>
+						<button name="generate_cuenta_analitica_reporte" string="Crear XLS" type="object" class="oe_highlight"/>
+						<button string="Cancelar" class="oe_highlight" special="cancel" />
+					</footer>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	
+	<record id="action_cuenta_analitica_report" model="ir.actions.act_window">
+        <field name="name">Reporte Por Cuenta Analitica</field>
+        <field name="res_model">reporte.por.cuenta.analitca</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+    <menuitem id="menu_cuenta_analitica_report" name="Reporte Por Cuenta Analitica" action="action_cuenta_analitica_report" sequence="155" parent="stock.menu_warehouse_report"/>
+</odoo>
