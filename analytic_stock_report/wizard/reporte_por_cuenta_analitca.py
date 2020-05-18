@@ -50,7 +50,7 @@ class ReportePorCuentaAnalitca(models.TransientModel):
         worksheet.write(5,10,'Costo total',header_style)
         row = 6
         col = 0
-        stock_picking = self.env['stock.picking'].search([('x_studio_cuenta_analitica','=', self.cuenta_analitica_id.id),
+        stock_picking = self.env['stock.picking'].search([('x_studio_cuenta_analtica','=', self.cuenta_analitica_id.id),
                                                      ('picking_type_id.code','in',['incoming','outgoing']), ('state', '=', 'done')
                                                      ])
 

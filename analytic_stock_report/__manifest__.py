@@ -2,7 +2,7 @@
 {
     'name': 'Analytic Stock Report',
     'category': '',
-    'version': '13.0.0.2',
+    'version': '13.0.0.3',
     'author': '',
     'description': """""",
     'sequence': '1',
