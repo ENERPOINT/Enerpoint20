@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data> 
+    	<template id="report_cuenta_analitica_template">
+		    <t t-call="web.html_container">
+					<t t-call="web.external_layout">
+						<div class="page">
+							<h3>Reporte Por Cuenta Analitica</h3><br/>
+							<span>Cuenta Analitica: <t t-esc="account_name"/></span><br/><br/>
+							<table class="table table-bordered">
+	                            <thead>
+	                            	<tr>
+		                                <th>Producto</th>
+		                                <th>Clave De Producto</th>
+		                                <th>Cantidad De Salida</th>
+		                                <th>Cantidad De Entrada</th> 
+		                                <th>Gasto Final</th>
+		                                <th>C.Unitario</th>
+		                                <th>C.Total</th>
+	                            	</tr>
+	                            </thead>
+	                            <tbody>
+	                            	<t t-foreach="docs" t-as='doc'>
+		                            	<tr>
+		                            		<td><t t-esc="doc['product_name']"/></td>
+		                            		<td><t t-esc="doc['ref']"/></td>
+		                            		<td><t t-esc="doc['out_qty']"/></td>
+		                            		<td><t t-esc="doc['in_qty']"/></td>
+		                            		<td><t t-esc="doc['out_qty']-doc['in_qty']"/></td>
+		                            		<td><t t-esc="doc['cost']"/></td>
+		                            		<td><t t-esc="(doc['out_qty']-doc['in_qty'])*doc['cost']"/></td>
+		                            	</tr>
+		                            </t>
+	                            </tbody>
+	                        </table>
+	                        <div class="text-right">
+	                        	<span>Costo Total: <t t-esc="cost_total"/></span>
+	                        </div>
+						</div>
+					</t>
+				</t>
+		</template>
+    </data>
+</odoo>
