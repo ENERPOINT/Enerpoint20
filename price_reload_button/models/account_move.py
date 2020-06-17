@@ -30,11 +30,12 @@ class AccountMove(models.Model):
             from_currency = self.last_currency_id
             to_currency = self.currency_id
             company = self.company_id
-            today_date = date.today()
+            #today_date = date.today()
+            rate_invoice_date = self.invoice_date
             update_lines = []
             
             for line in self.invoice_line_ids:
-                converted_unit_price = from_currency._convert(line.price_unit, to_currency, company, today_date)
+                converted_unit_price = from_currency._convert(line.price_unit, to_currency, company, rate_invoice_date)
                 update_lines.append((1, line.id, {'price_unit': converted_unit_price}))
             self.write({'invoice_line_ids': update_lines})
         return True
