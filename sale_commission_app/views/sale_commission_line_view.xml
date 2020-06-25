@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	
+    	<!-- Sale Commission Line Tree View -->
+    	<record id="sale_commission_line_tree" model="ir.ui.view">
+			<field name="name">sale.commission.line.tree.view</field>
+			<field name="model">sale.commission.line</field>			
+			<field name="arch" type="xml">
+				<tree create="false">
+                    <field name="sales_commission" string="Ref"/>
+                    <field name="sale_team_id"/>
+                    <field name="member_id"/>
+                    <field name="product_id"/>
+                    <field name="source_document"/>
+                    <field name="amount_total"/>
+                    <field name="currency_id"/>
+                    <field name="user_id"/>
+                </tree>
+			</field>
+		</record>
+
+		<record id="sale_commission_line_form" model="ir.ui.view">
+			<field name="name">sale.commission.line.form.view</field>
+			<field name="model">sale.commission.line</field>			
+			<field name="arch" type="xml">
+				<form create="false" edit="false">
+					<header>
+            			<field name="state" widget="statusbar" status_visible="draft,exception"/>
+            		</header>
+					<sheet>
+						<h1><field name="sales_commission"/></h1>
+						<group>
+							<group>
+			                    <field name="sale_team_id"/>
+			                    <field name="member_id"/>
+			                    <field name="product_id"/>
+			                    <field name="create_date"/>
+		                	</group>
+		                	<group>
+			                    <field name="source_document"/>
+			                    <field name="amount_total"/>
+			                    <field name="currency_id"/>
+			                    <field name="user_id"/>
+		           	 		</group>
+		           	 	</group>
+		           	</sheet>
+                </form>
+			</field>
+		</record>
+
+		<record id="sequence_view" model="ir.sequence">
+        	<field name="name">Sequence</field>
+        	<field name="code">seq.code</field>
+        	<field name="prefix">SO/</field>
+        	<field name="padding">3</field>
+        	<field name="company_id" eval="False"/>
+        </record>
+
+
+ 		<!-- Sale Commission Line Action -->
+    	<record id="sale_commission_line_action" model="ir.actions.act_window">
+			<field name="name">Sale Commission</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">sale.commission.line</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<!-- Commission Worksheet Action -->
+		<record id="commission_worksheet_action" model="ir.actions.act_window">
+			<field name="name">Sale Commission Worksheet</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">sale.commission.worksheet</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<!-- Commission Menu -->
+		<menuitem id="commissions_root"
+            name="Commission"
+            parent="sale.sale_menu_root"
+            groups="sale_commission_app.group_show_commission_view"/>
+
+		<!-- Sale Commission Line Menu -->
+		<menuitem	id="sale_commission_line" 
+					name="Sale Commission Lines" 
+					parent="commissions_root"
+					action="sale_commission_line_action"/>
+
+		<!-- Commission Worksheet Menu -->
+		<menuitem	id="sale_commission_worksheets" 
+					name="Commission Worksheet" 
+					parent="commissions_root"
+					action="commission_worksheet_action"/>
+    </data>
+</odoo>
+

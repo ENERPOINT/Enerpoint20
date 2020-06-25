@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Barcode Labels Paperformate Report -->
+    <record model="report.paperformat" id="paperformat_sale_commission">
+        <field name="name">paperformat.sale.commission</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_width">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">30</field>
+        <field name="margin_right">5</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">20</field>
+        <field name="dpi">90</field>
+    </record>   
+
+    <record id="view_report_details_wizard" model="ir.ui.view">
+            <field name="name">Report Wizard</field>
+            <field name="model">sale.commission.report</field>
+            <field name="arch" type="xml">
+                <form string="Sale Commission">
+                    <p>Do you want to print the Report?</p>
+                    <footer>
+                        <button name="generate_report" string="Print" type="object" class="btn-primary" icon="fa-download"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+    </record>
+
+     <report 
+        id="report_template_ids" 
+        model="sale.commission.report" 
+        string="Commission Report"
+        report_type="qweb-pdf"
+        name="sale_commission_app.worksheet_template_ids" 
+        file="sale_commission_app.worksheet_template_ids"
+        paperformat="paperformat_sale_commission"
+        menu="False"
+    />
+
+    <record id="report_view_action" model="ir.actions.act_window">
+        <field name="name">Report</field>
+        <field name="res_model">sale.commission.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <act_window 
+            id="pdf_report"
+            name="Print Commission Report"
+            res_model="sale.commission.report"
+            binding_model="sale.commission.worksheet"
+            view_mode="form"
+            view_id="sale_commission_app.view_report_details_wizard"
+            domain="[('id', '=' ,active_ids)]"
+            target="new"
+        />
+</odoo>

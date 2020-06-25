@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<template id="worksheet_template_ids">
+		<t t-call="web.html_container">
+			<t t-call="web.external_layout">
+				<style>
+					table, th, td {
+					border-top: 1px solid black;
+					border-collapse: collapse;
+					}
+					th, td{
+					padding : 5px;
+					text-align: left
+					}
+					h1 {
+					text-align:center;
+					}
+				</style>
+				<t t-foreach="docs" t-as="o">
+					<div class="page">
+                		<div class="oe_structure"/>
+                		<br/><br/><br/><br/>
+						<h1>Sale Commission Report</h1>
+						<div>
+							<h2><span t-field="o.name"/></h2>
+						</div>
+						<table class="table table-sm o_main_table" style="width:100%">
+								<tr>
+									<th>Partner :-</th><td class="text-left"><span t-field="o.sale_member"/></td>
+								</tr>
+								<tr>
+									<th>Commission Product :-</th><td class="text-left"><span t-field="o.commission_product_name"/></td>
+								</tr>
+								<tr>
+									<th>Currency :-</th><td class="text-left"><span t-field="o.currency"/></td>
+								</tr>
+								<tr>
+									<th>Invoice :-</th><td class="text-left"><span t-field="o.commission_invoice_name"/></td>
+								</tr>
+								<tr>
+									<th>Start Date :- </th><td class="text-left"><span t-field="o.start_date"/></td>
+									<th style="float:left;">End Date :-</th><td class="text-left" style="float:left;"><span t-field="o.end_date"/></td>
+								</tr>
+
+							</table>
+
+							<br/><br/>
+							<h4>Sale Commission Line</h4>
+							<table class="table table-sm o_main_table" style="width:100%; border-top: 1px solid black;">
+								<tr >
+									<t t-set="colspan" t-value="5"/>
+									<th>Source Document</th>
+									<th>Commission Date</th>
+									<th>User Type</th>
+									<th>Amount</th>
+									<th>Currency</th>
+									<th>Amount in Currency</th>
+									<th>Status</th>
+								</tr>
+								<tr t-foreach="o.sale_commission_line" t-as="line">
+									<td class="text-left"><span t-field="line.source_document"/></td>
+									<td class="text-left"><span t-field="line.date"/></td>
+									<td class="text-left"><span t-field="line.user_type"/></td>
+									<td class="text-left"><span t-field="line.amount"/></td>
+									<td class="text-left"><span t-field="line.currency"/></td>
+									<td class="text-left"><span t-field="line.amount_in_currency"/></td>
+									<td class="text-left"><span t-field="line.state"/></td>
+								</tr>
+							</table>
+						</div>
+						<div style="page-break-before:always;"/>
+					</t>
+				</t>
+			</t>
+		</template>
+</odoo>
