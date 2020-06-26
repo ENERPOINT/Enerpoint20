@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<record id="sale_commission_worksheet_tree" model="ir.ui.view">
+            <field name="name">sale.commission.worksheet</field>
+            <field name="model">sale.commission.worksheet</field>
+            <field name="arch" type="xml">
+	            <tree string="Sale Commission">
+	            	<field name="name"/>
+	                <field name="sale_member"/>
+	                <field name="start_date"/>
+	                <field name="end_date"/>
+	                <field name="commission_product_name"/>
+	                <field name="commission_amount"/>
+	                <field name="currency"/>
+	                <field name="commission_invoice_name"/>
+	                <field name="state"/>
+	            </tree>
+            </field>
+        </record>
+
+    	<record id="sale_commission_worksheet_form" model="ir.ui.view">
+            <field name="name">sale.commission.worksheet</field>
+            <field name="model">sale.commission.worksheet</field>
+            <field name="arch" type="xml">
+            	<form>
+            		<header>
+            			<button name="create_invoice_bill" type="object" class="oe_highlight" string="Create Bill" attrs="{'invisible':[('state','in','invoiced')]}"/>
+            			<button name="cancel_button" type="object" string="Cancel" />
+            			<field name="state" widget="statusbar" status_visible="draft,invoiced"/>
+            		</header>
+                    <sheet>
+                    	<h1><field name="name"/></h1>
+                        <group>
+                        	<group>
+	                            <field name="sale_member"/>
+	                            <field name="start_date"/>
+	                    		<field name="end_date"/>
+	                            <field name="commission_product_name"/>
+	                        </group>
+	                        <group>
+	                            <field name="commission_amount"/>
+	                            <field name="currency"/>
+	                            <field name="commission_invoice_name"/>
+	                        </group>
+                         </group>
+	                    <notebook colspan="4">
+							<page string="Sale Commission Line">
+								<field name="sale_commission_line" >
+									<tree editable="bottom">
+										<field name="date"/>
+										<field name="user_type"/>
+										<field name="amount"/>
+										<field name="currency"/>
+										<field name="amount_in_currency"/>
+										<field name="source_currency"/>
+										<field name="source_document"/>
+										<field name="state"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+					</sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="sale_worksheet_sequence" model="ir.sequence">
+        	<field name="name">Sequence</field>
+        	<field name="code">sequence.code</field>
+        	<field name="prefix">SC</field>
+        	<field name="padding">3</field>
+        	<field name="company_id" eval="False"/>
+        </record>
+
+        <record id="sale_commission_worksheet_view" model="ir.actions.act_window">
+			<field name="name">Sale Worksheet</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">sale.commission.worksheet</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<record id="group_show_commission_view" model="res.groups">
+        	<field name="name">Commission</field>
+    	</record>
+    </data>
+</odoo>

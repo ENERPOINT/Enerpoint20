@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_commission_record,access.commission.record,model_commission_record,,1,1,1,1
+access_product_commission_record,access.product.commission.record,model_product_commission_record,,1,1,1,1
+access_sale_team_commission_record,access.sale.team.commission.record,model_sale_team_commission_record,,1,1,1,1
+access_sale_commission_line,access.sale.commission.line,model_sale_commission_line,,1,1,1,1
+access_sale_commission_worksheet,access.sale.commission.worksheet,model_sale_commission_worksheet,,1,1,1,1
+access_commission_line,access.commission.line,model_commission_line,,1,1,1,1
+
+
