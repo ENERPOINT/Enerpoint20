@@ -20,54 +20,71 @@
 					<div class="page">
                 		<div class="oe_structure"/>
                 		<br/><br/><br/><br/>
-						<h1>Sale Commission Report</h1>
+						<h1 style='text-align:center;'>Sale Commission Report</h1>
 						<div>
 							<h2><span t-field="o.name"/></h2>
 						</div>
-						<table class="table table-sm o_main_table" style="width:100%">
+						<table class="table table-sm o_main_table" style="width:100%; border-top: 1px solid black;
+						border-collapse: collapse;">
 								<tr>
-									<th>Partner :-</th><td class="text-left"><span t-field="o.sale_member"/></td>
+									<th style= 'padding:5px; text-align:left'>Partner :-</th><td class="text-left" style='padding:5px;'><span t-field="o.partner_id"/></td>
 								</tr>
 								<tr>
-									<th>Commission Product :-</th><td class="text-left"><span t-field="o.commission_product_name"/></td>
+									<th style= 'padding:5px; text-align:left'>Users :-</th><td class="text-left" style='padding:5px;'><span t-field="o.sale_member"/></td>
 								</tr>
 								<tr>
-									<th>Currency :-</th><td class="text-left"><span t-field="o.currency"/></td>
+									<th style= 'padding:5px; text-align:left'>Currency :-</th><td class="text-left" style='padding:5px;'><span t-field="o.currency"/></td>
 								</tr>
 								<tr>
-									<th>Invoice :-</th><td class="text-left"><span t-field="o.commission_invoice_name"/></td>
+									<th style= 'padding:5px; text-align:left'>Invoice :-</th><td class="text-left" style='padding:5px;'><span t-field="o.commission_invoice_name"/></td>
 								</tr>
 								<tr>
-									<th>Start Date :- </th><td class="text-left"><span t-field="o.start_date"/></td>
-									<th style="float:left;">End Date :-</th><td class="text-left" style="float:left;"><span t-field="o.end_date"/></td>
+									<th style= 'padding:5px; text-align:left'>Start Date :- </th><td class="text-left" style='padding:5px;'><span t-field="o.start_date"/></td>
+									<th style="float:left; padding:5px; text-align:left">End Date :-</th><td class="text-left" style="float:left; padding:5px;"><span t-field="o.end_date"/></td>
 								</tr>
 
 							</table>
-
 							<br/><br/>
 							<h4>Sale Commission Line</h4>
 							<table class="table table-sm o_main_table" style="width:100%; border-top: 1px solid black;">
 								<tr >
-									<t t-set="colspan" t-value="5"/>
+									<t t-set="colspan" t-value="6"/>
+									<th>Product</th>
 									<th>Source Document</th>
 									<th>Commission Date</th>
 									<th>User Type</th>
-									<th>Amount</th>
 									<th>Currency</th>
 									<th>Amount in Currency</th>
 									<th>Status</th>
+									<th>Amount</th>
 								</tr>
 								<tr t-foreach="o.sale_commission_line" t-as="line">
+									<td class="text-left"><span t-field="line.product_id"/></td>
 									<td class="text-left"><span t-field="line.source_document"/></td>
 									<td class="text-left"><span t-field="line.date"/></td>
 									<td class="text-left"><span t-field="line.user_type"/></td>
-									<td class="text-left"><span t-field="line.amount"/></td>
 									<td class="text-left"><span t-field="line.currency"/></td>
 									<td class="text-left"><span t-field="line.amount_in_currency"/></td>
 									<td class="text-left"><span t-field="line.state"/></td>
+									<td class="text-left"><span t-field="line.amount"/></td>
 								</tr>
+
 							</table>
 						</div>
+	                    <div class="clearfix">
+	                        <div id="total" class="row">
+	                            <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+	                                <table class="table table-sm">
+	                                    <tr class="border-black o_total">
+	                                        <td><strong>Total</strong></td>
+	                                        <td class="text-right">
+	                                            <span t-field="o.commission_amount"/>
+	                                        </td>
+	                                    </tr>
+	                                </table>
+	                            </div>
+	                        </div>
+	                    </div>
 						<div style="page-break-before:always;"/>
 					</t>
 				</t>

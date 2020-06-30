@@ -16,6 +16,7 @@
                     <field name="amount_total"/>
                     <field name="currency_id"/>
                     <field name="user_id"/>
+                    <field name="partner_id"/>
                 </tree>
 			</field>
 		</record>
@@ -36,6 +37,7 @@
 			                    <field name="member_id"/>
 			                    <field name="product_id"/>
 			                    <field name="create_date"/>
+			                    <field name="partner_id"/>
 		                	</group>
 		                	<group>
 			                    <field name="source_document"/>
