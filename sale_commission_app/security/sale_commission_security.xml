@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="sale_commission_personal_security_rule" model="ir.rule">
+            <field name="name">Sale Commission Personal Rule </field>
+            <field ref="model_sale_commission_line" name="model_id"/>
+            <field name="domain_force">['|',('member_id','=',user.id),('member_id','=',False)]</field>
+            <field name="perm_unlink" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="False"/>
+        </record>
+
+<!--         <record id="sale_commission_worksheet_personal_rule" model="ir.rule">
+            <field name="name">Sale Commission Worksheet Personal Rule</field>
+            <field ref="model_sale_commission_worksheet" name="model_id"/>
+            <field name="domain_force">[('sale_member','=',user.id)]</field>
+            <field name="perm_unlink" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="True"/>
+        </record> -->
+
+    </data>
+</odoo>
