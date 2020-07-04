@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<template id="frontend_layout_inherit" inherit_id="portal.frontend_layout">
+		<xpath expr="//div[@id='top_menu_collapse']" position="after">
+			<div>
+				<span style="color:red;"><strong>Tipo De Cambio: </strong>
+				<t t-esc="request.env['res.currency'].get_usd_currency_rate()" />
+				</span>
+			</div>
+		</xpath>
+	</template>
+</odoo>
