@@ -5,5 +5,6 @@ access_sale_team_commission_record,access.sale.team.commission.record,model_sale
 access_sale_commission_line,access.sale.commission.line,model_sale_commission_line,,1,1,1,1
 access_sale_commission_worksheet,access.sale.commission.worksheet,model_sale_commission_worksheet,,1,1,1,1
 access_commission_line,access.commission.line,model_commission_line,,1,1,1,1
+access_product_supplierinfo_commission_record,access.product.supplierinfo.commission.record,model_product_supplierinfo_commission_record,,1,1,1,1
 
 

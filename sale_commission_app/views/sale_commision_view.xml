@@ -136,6 +136,33 @@
             </field>
         </record>
 
+        <!-- Sale Commission In Seller View -->
+        <record id="product_supplierinfo_form_view_sale_commission" model="ir.ui.view">
+            <field name="name">product.supplierinfo.sale.commission</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
+            <field name="arch" type="xml">
+                <!-- xpath for Account Type Field -->
+                <xpath expr="//form/group" position="after">
+                    <group string="Sales Commission" groups="sale_commission_app.group_show_commission_view">
+                        <group>
+                            <field name="_is_commission"/>
+                            <field name="account_type" attrs="{'invisible': [('_is_commission', '=', False)], 'required': [('_is_commission', '=', True)]}"/>
+                        </group>
+                        <field name="supplierinfo_commission_ids" attrs="{'invisible':[('_is_commission','=',False)]}" context="{'default_account_type':account_type}">
+                            <tree string="Sale Commission" editable="bottom">
+                                <field name="initiate_total"/>
+                                <field name="end_total"/>
+                                <field name="account_type" readonly="1"/>
+                                <field name="supplier_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
+                                <field name="supplier_commission_amount" attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
+                            </tree>
+                        </field>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </odoo>
 

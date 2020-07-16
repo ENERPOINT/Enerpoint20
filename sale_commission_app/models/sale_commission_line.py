@@ -11,7 +11,7 @@ class SaleCommissionLine(models.Model):
 	sales_commission = fields.Char("Ref",readonly=True, index=True, default=lambda self: _(''))
 	sale_team_id = fields.Many2one('crm.team',string='Sales Team')
 	member_id = fields.Many2one('res.users',string='Sales User')
-	partner_id = fields.Many2one('res.partner', string='Partner', required=True)
+	partner_id = fields.Many2one('res.partner', string='Customer/Vendor', required=True)
 	product_id = fields.Many2one('product.product', string='Product')
 	source_document = fields.Char(string="Source Document") 
 	amount_total = fields.Monetary(string='Total')
@@ -40,8 +40,8 @@ class SaleOrder(models.Model):
 				if apply_sale_commission == 'sales_confirmation':
 					if calculation_method == 'product':
 						for line in record.order_line:
-							for com_lines in line.product_id.product_commission_ids:
-								if line.product_id._is_commission:
+							if line.product_id._is_commission:
+								for com_lines in line.product_id.product_commission_ids:
 									if not record.team_id.user_id:
 										raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 									if record.team_id.user_id:
@@ -100,75 +100,166 @@ class SaleOrder(models.Model):
 																		   	'user_id':'Sales Person',
 																		   	'state': 'draft'
 																		   })
+							# Seller Commission Information
+							if not line.product_id.seller_ids:
+								raise ValidationError(_('Please Define Vendor Details inside the Product'))
+							for seller in line.product_id.seller_ids:
+								if seller._is_commission:
+									for com_lines in seller.supplierinfo_commission_ids:
+										if seller.account_type == 'fixed_amount':
+											if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':line.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':com_lines.supplier_commission_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+										if seller.account_type == 'by_percentage':
+											percent_amount = (line.price_subtotal * com_lines.supplier_commission) / 100
+											if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':line.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':percent_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+								else:
+									product_commission.create({
+										'partner_id':seller.name.id,
+										'product_id':line.product_id.id,
+									   	'sale_team_id':record.team_id.id,
+									   	'member_id': record.user_id.id,
+									   	'source_document':record.name,
+									   	'amount_total':seller.price,
+									   	'currency_id':self.env.user.company_id.currency_id.id,
+									   	'user_id':'Seller(vendor)',
+									   	'state': 'draft'
+									})
+
 
 					if calculation_method == 'sales_team':
 						for lines in record.order_line:
-							for com_lines in lines.product_id:
+							if record.team_id._is_commission:
 								for sale_com in record.team_id.sale_team_commission_ids:
-									if record.team_id._is_commission:
-										if not record.team_id.user_id:
-											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
-										if record.team_id.user_id:
-											if record.team_id.account_type == 'fixed_amount':
-												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id':record.partner_id.id,
-																				'product_id':lines.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': record.team_id.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':sale_com.manager_commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'Sales Manager',
-																			   	'state': 'draft'
-																			   })
-											if record.team_id.account_type == 'by_percentage':
-												percent_amount = (lines.price_subtotal * sale_com.sales_manager_commission) / 100
-												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id':record.partner_id.id,
-																				'product_id':lines.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': record.team_id.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'Sales Manager',
-																			   	'state': 'draft'
-																			   })
-										if record.user_id:
-											if record.team_id.account_type == 'fixed_amount':
-												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id':record.partner_id.id,
-																				'product_id':lines.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': record.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':sale_com.sale_person_commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'Sales Person',
-																			   	'state': 'draft'
-																			   })
-											if record.team_id.account_type == 'by_percentage':
-												percent_amount = (lines.price_subtotal * sale_com.sales_person_commission) / 100
-												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id':record.partner_id.id,
-																				'product_id':lines.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': record.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'Sales Person',
-																			   	'state': 'draft'
-																			   })
+									if not record.team_id.user_id:
+										raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
+									if record.team_id.user_id:
+										if record.team_id.account_type == 'fixed_amount':
+											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+												product_commission.create({
+																			'partner_id':record.partner_id.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.team_id.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':sale_com.manager_commission_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Sales Manager',
+																		   	'state': 'draft'
+																		   })
+										if record.team_id.account_type == 'by_percentage':
+											percent_amount = (lines.price_subtotal * sale_com.sales_manager_commission) / 100
+											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+												product_commission.create({
+																			'partner_id':record.partner_id.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.team_id.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':percent_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Sales Manager',
+																		   	'state': 'draft'
+																		   })
+									if record.user_id:
+										if record.team_id.account_type == 'fixed_amount':
+											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+												product_commission.create({
+																			'partner_id':record.partner_id.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':sale_com.sale_person_commission_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Sales Person',
+																		   	'state': 'draft'
+																		   })
+										if record.team_id.account_type == 'by_percentage':
+											percent_amount = (lines.price_subtotal * sale_com.sales_person_commission) / 100
+											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+												product_commission.create({
+																			'partner_id':record.partner_id.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':percent_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Sales Person',
+																		   	'state': 'draft'
+																		   })
+							# Seller Commission Information
+							if not lines.product_id.seller_ids:
+								raise ValidationError(_('Please Define Vendor Details inside the Product'))
+							for seller in lines.product_id.seller_ids:
+								if seller._is_commission:
+									for com_lines in seller.supplierinfo_commission_ids:
+										if seller.account_type == 'fixed_amount':
+											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':com_lines.supplier_commission_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+										if seller.account_type == 'by_percentage':
+											percent_amount = (lines.price_subtotal * com_lines.supplier_commission) / 100
+											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':percent_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+								else:
+									product_commission.create({
+										'partner_id':seller.name.id,
+										'product_id':lines.product_id.id,
+									   	'sale_team_id':record.team_id.id,
+									   	'member_id': record.user_id.id,
+									   	'source_document':record.name,
+									   	'amount_total':seller.price,
+									   	'currency_id':self.env.user.company_id.currency_id.id,
+									   	'user_id':'Seller(vendor)',
+									   	'state': 'draft'
+									})
+
 
 					if calculation_method == 'product_categ':
 						for lines in record.order_line:
-							for com_lines in lines.product_id.categ_id.sale_commission_ids:
-								if lines.product_id.categ_id._is_commission:
+							if lines.product_id.categ_id._is_commission:
+								for com_lines in lines.product_id.categ_id.sale_commission_ids:
 									if not record.team_id.user_id:
 										raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 									if record.team_id.user_id:
@@ -227,6 +318,51 @@ class SaleOrder(models.Model):
 																		   	'user_id':'Sales Person',
 																		   	'state': 'draft'
 																		   })
+							# Seller Commission Information
+							if not lines.product_id.seller_ids:
+								raise ValidationError(_('Please Define Vendor Details inside the Product'))
+							for seller in lines.product_id.seller_ids:
+								if seller._is_commission:
+									for com_lines in seller.supplierinfo_commission_ids:
+										if seller.account_type == 'fixed_amount':
+											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':com_lines.supplier_commission_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+										if seller.account_type == 'by_percentage':
+											percent_amount = (lines.price_subtotal * com_lines.supplier_commission) / 100
+											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+												product_commission.create({
+																			'partner_id':seller.name.id,
+																			'product_id':lines.product_id.id,
+																		   	'sale_team_id':record.team_id.id,
+																		   	'member_id': record.user_id.id,
+																		   	'source_document':record.name,
+																		   	'amount_total':percent_amount,
+																		   	'currency_id':self.env.user.company_id.currency_id.id,
+																		   	'user_id':'Seller(vendor)',
+																		   	'state': 'draft'
+																		   })
+								else:
+									product_commission.create({
+										'partner_id':seller.name.id,
+										'product_id':lines.product_id.id,
+									   	'sale_team_id':record.team_id.id,
+									   	'member_id': record.user_id.id,
+									   	'source_document':record.name,
+									   	'amount_total':seller.price,
+									   	'currency_id':self.env.user.company_id.currency_id.id,
+									   	'user_id':'Seller(vendor)',
+									   	'state': 'draft'
+									})
 
 		return res
 
@@ -249,11 +385,11 @@ class Invoice(models.Model):
 						for line in record.invoice_line_ids:
 							if calculation_method == 'product':
 								if line.product_id._is_commission:
-									if not record.team_id.user_id:
-										raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
-									if record.team_id.user_id:
-										if line.product_id.account_type == 'fixed_amount':
-											for com_lines in line.product_id.product_commission_ids:
+									for com_lines in line.product_id.product_commission_ids:
+										if not record.team_id.user_id:
+											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
+										if record.team_id.user_id:
+											if line.product_id.account_type == 'fixed_amount':
 												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
 													product_commission.create({
 																				'partner_id':record.partner_id.id,
@@ -267,8 +403,7 @@ class Invoice(models.Model):
 																			   	'user_id':'Sales Manager'
 																			   })
 
-										if line.product_id.account_type == 'by_percentage':
-											for com_lines in line.product_id.product_commission_ids:
+											if line.product_id.account_type == 'by_percentage':
 												percent_amount = (line.price_subtotal * com_lines.sales_manager_commission) / 100
 												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
 													product_commission.create({
@@ -282,9 +417,8 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Manager'
 																			   })
-									if record.user_id:
-										if line.product_id.account_type == 'fixed_amount':
-											for com_lines in line.product_id.product_commission_ids:
+										if record.user_id:
+											if line.product_id.account_type == 'fixed_amount':
 												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
 													product_commission.create({
 																				'partner_id':record.partner_id.id,
@@ -298,8 +432,7 @@ class Invoice(models.Model):
 																			   	'user_id':'Sales Person'
 																			   })
 
-										if line.product_id.account_type == 'by_percentage':
-											for com_lines in line.product_id.product_commission_ids:
+											if line.product_id.account_type == 'by_percentage':
 												percent_amount = (line.price_subtotal * com_lines.sales_person_commission) / 100
 												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
 													product_commission.create({
@@ -313,10 +446,55 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Person'
 																			   })
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':com_lines.supplier_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												percent_amount = (line.price_subtotal * com_lines.supplier_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
 
 							if calculation_method == 'sales_team':
-								for sale_com in record.team_id.sale_team_commission_ids:
-									if record.team_id._is_commission:
+								if record.team_id._is_commission:
+									for sale_com in record.team_id.sale_team_commission_ids:
 										if not record.team_id.user_id:
 											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 										if record.team_id.user_id:
@@ -375,9 +553,56 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Person'
 																			   })
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':com_lines.supplier_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												percent_amount = (line.price_subtotal * com_lines.supplier_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
+
+
 							if calculation_method == 'product_categ':
-								for com_lines in line.product_id.categ_id.sale_commission_ids:
-									if line.product_id.categ_id._is_commission:
+								if line.product_id.categ_id._is_commission:
+									for com_lines in line.product_id.categ_id.sale_commission_ids:
 										if not record.team_id.user_id:
 											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 										if record.team_id.user_id:
@@ -436,15 +661,62 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Person'
 																			   })
+
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':com_lines.supplier_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												percent_amount = (line.price_subtotal * com_lines.supplier_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
+
 					else:
 						for line in record.invoice_line_ids:
 							if calculation_method == 'product':
 								if line.product_id._is_commission:
-									if not record.team_id.user_id:
-										raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
-									if record.team_id.user_id:
-										if line.product_id.account_type == 'fixed_amount':
-											for com_lines in line.product_id.product_commission_ids:
+									for com_lines in line.product_id.product_commission_ids:
+										if not record.team_id.user_id:
+											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
+										if record.team_id.user_id:
+											if line.product_id.account_type == 'fixed_amount':
 												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
 												commission_amount = company.currency_id._convert(com_lines.manager_commission_amount, record.currency_id, company, fields.Date.today())
 												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
@@ -460,8 +732,7 @@ class Invoice(models.Model):
 																			   	'user_id':'Sales Manager'
 																			   })
 
-										if line.product_id.account_type == 'by_percentage':
-											for com_lines in line.product_id.product_commission_ids:
+											if line.product_id.account_type == 'by_percentage':
 												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
 												percent_amount = (amount * com_lines.sales_manager_commission) / 100
 												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
@@ -477,9 +748,8 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Manager'
 																			   })
-									if record.user_id:
-										if line.product_id.account_type == 'fixed_amount':
-											for com_lines in line.product_id.product_commission_ids:
+										if record.user_id:
+											if line.product_id.account_type == 'fixed_amount':
 												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
 												commission_amount = company.currency_id._convert(com_lines.sale_person_commission_amount, record.currency_id, company, fields.Date.today())
 												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
@@ -495,8 +765,7 @@ class Invoice(models.Model):
 																			   	'user_id':'Sales Person'
 																			   })
 
-										if line.product_id.account_type == 'by_percentage':
-											for com_lines in line.product_id.product_commission_ids:
+											if line.product_id.account_type == 'by_percentage':
 												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
 												percent_amount = (amount * com_lines.sales_person_commission) / 100
 												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
@@ -512,9 +781,58 @@ class Invoice(models.Model):
 																			   	'user_id':'Sales Person'
 																			   })
 
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												percent_amount = (amount * com_lines.supplier_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
+
 							if calculation_method == 'sales_team':
-								for sale_com in record.team_id.sale_team_commission_ids:
-									if record.team_id._is_commission:
+								if record.team_id._is_commission:
+									for sale_com in record.team_id.sale_team_commission_ids:
 										if not record.team_id.user_id:
 											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 										if record.team_id.user_id:
@@ -579,9 +897,58 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Person'
 																			   })
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												percent_amount = (amount * com_lines.supplier_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
+
 							if calculation_method == 'product_categ':
-								for com_lines in line.product_id.categ_id.sale_commission_ids:
-									if line.product_id.categ_id._is_commission:
+								if line.product_id.categ_id._is_commission:
+									for com_lines in line.product_id.categ_id.sale_commission_ids:
 										if not record.team_id.user_id:
 											raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 										if record.team_id.user_id:
@@ -646,6 +1013,54 @@ class Invoice(models.Model):
 																			   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																			   	'user_id':'Sales Person'
 																			   })
+								# Seller Commission Information
+								if not line.product_id.seller_ids:
+									raise ValidationError(_('Please Define Vendor Details inside the Product'))
+								for seller in line.product_id.seller_ids:
+									if seller._is_commission:
+										for com_lines in seller.supplierinfo_commission_ids:
+											if seller.account_type == 'fixed_amount':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total': commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+											if seller.account_type == 'by_percentage':
+												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+												percent_amount = (amount * com_lines.supplier_commission) / 100
+												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id':seller.name.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': record.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'Seller(vendor)',
+																			   	'state': 'exception'
+																			   })
+									else:
+										product_commission.create({
+											'partner_id':seller.name.id,
+											'product_id':line.product_id.id,
+										   	'sale_team_id':record.team_id.id,
+										   	'member_id': record.user_id.id,
+										   	'source_document':record.name,
+										   	'amount_total':seller.price,
+										   	'currency_id':self.env.user.company_id.currency_id.id,
+										   	'user_id':'Seller(vendor)',
+										   	'state': 'exception'
+										})
 
 		return res
 
@@ -670,8 +1085,8 @@ class Payment(models.Model):
 							if apply_sale_commission == 'customer_payment':
 								if calculation_method == 'product':
 									for line in lines.invoice_line_ids:
-										for li in line.product_id.product_commission_ids:
-											if line.product_id._is_commission:
+										if line.product_id._is_commission:
+											for li in line.product_id.product_commission_ids:
 												if not record.sale_team.user_id:
 													raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 												if record.sale_team.user_id:
@@ -732,10 +1147,56 @@ class Payment(models.Model):
 																					   	'user_id':'Sales Person'
 																					   })
 
+										# Seller Commission Information
+										if not line.product_id.seller_ids:
+											raise ValidationError(_('Please Define Vendor Details inside the Product'))
+										for seller in line.product_id.seller_ids:
+											if seller._is_commission:
+												for com_lines in seller.supplierinfo_commission_ids:
+													if seller.account_type == 'fixed_amount':
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':com_lines.supplier_commission_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+													if seller.account_type == 'by_percentage':
+														percent_amount = (record.amount * com_lines.supplier_commission) / 100
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':percent_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+											else:
+												product_commission.create({
+													'partner_id':seller.name.id,
+													'product_id':line.product_id.id,
+												   	'sale_team_id':lines.team_id.id,
+												   	'member_id': record.sale_person.id,
+												   	'source_document':record.name,
+												   	'amount_total':seller.price,
+												   	'currency_id':self.env.user.company_id.currency_id.id,
+												   	'user_id':'Seller(vendor)',
+												   	'state': 'exception'
+												})
+
 								if calculation_method == 'sales_team':
 									for line in lines.invoice_line_ids:
-										for li in lines.team_id.sale_team_commission_ids:
-											if lines.team_id._is_commission:
+										if lines.team_id._is_commission:
+											for li in lines.team_id.sale_team_commission_ids:
 												if not record.sale_team.user_id:
 													raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 												if record.sale_team.user_id:
@@ -796,10 +1257,57 @@ class Payment(models.Model):
 																					   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																					   	'user_id':'Sales Person'
 																					   })
+
+										# Seller Commission Information
+										if not line.product_id.seller_ids:
+											raise ValidationError(_('Please Define Vendor Details inside the Product'))
+										for seller in line.product_id.seller_ids:
+											if seller._is_commission:
+												for com_lines in seller.supplierinfo_commission_ids:
+													if seller.account_type == 'fixed_amount':
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':com_lines.supplier_commission_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+													if seller.account_type == 'by_percentage':
+														percent_amount = (record.amount * com_lines.supplier_commission) / 100
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':percent_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+											else:
+												product_commission.create({
+													'partner_id':seller.name.id,
+													'product_id':line.product_id.id,
+												   	'sale_team_id':lines.team_id.id,
+												   	'member_id': record.sale_person.id,
+												   	'source_document':record.name,
+												   	'amount_total':seller.price,
+												   	'currency_id':self.env.user.company_id.currency_id.id,
+												   	'user_id':'Seller(vendor)',
+												   	'state': 'exception'
+												})
+
 								if calculation_method == 'product_categ':
 									for line in lines.invoice_line_ids:
-										for li in line.product_id.categ_id.sale_commission_ids:
-											if line.product_id.categ_id._is_commission:
+										if line.product_id.categ_id._is_commission:
+											for li in line.product_id.categ_id.sale_commission_ids:
 												if not record.sale_team.user_id:
 													raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 												if record.sale_team.user_id:
@@ -858,13 +1366,60 @@ class Payment(models.Model):
 																					   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																					   	'user_id':'Sales Person',
 																					   })
+
+										# Seller Commission Information
+										if not line.product_id.seller_ids:
+											raise ValidationError(_('Please Define Vendor Details inside the Product'))
+										for seller in line.product_id.seller_ids:
+											if seller._is_commission:
+												for com_lines in seller.supplierinfo_commission_ids:
+													if seller.account_type == 'fixed_amount':
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':com_lines.supplier_commission_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+													if seller.account_type == 'by_percentage':
+														percent_amount = (record.amount * com_lines.supplier_commission) / 100
+														if record.amount >= com_lines.initiate_total and record.amount <= com_lines.end_total:
+															product_commission.create({
+																						'partner_id':seller.name.id,
+																						'product_id':line.product_id.id,
+																					   	'sale_team_id':lines.team_id.id,
+																					   	'member_id': record.sale_person.id,
+																					   	'source_document':record.name,
+																					   	'amount_total':percent_amount,
+																					   	'currency_id':self.env.user.company_id.currency_id.id,
+																					   	'user_id':'Seller(vendor)',
+																					   	'state': 'exception'
+																					   })
+											else:
+												product_commission.create({
+													'partner_id':seller.name.id,
+													'product_id':line.product_id.id,
+												   	'sale_team_id':lines.team_id.id,
+												   	'member_id': record.sale_person.id,
+												   	'source_document':record.name,
+												   	'amount_total':seller.price,
+												   	'currency_id':self.env.user.company_id.currency_id.id,
+												   	'user_id':'Seller(vendor)',
+												   	'state': 'exception'
+												})
+
 						else:
 							if apply_sale_commission == 'customer_payment':
 								for lines in record.invoice_ids:
 									if calculation_method == 'product':
 										for line in lines.invoice_line_ids:
-											for li in line.product_id.product_commission_ids:
-												if line.product_id._is_commission:
+											if line.product_id._is_commission:
+												for li in line.product_id.product_commission_ids:
 													if not record.sale_team.user_id:
 														raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 													if record.sale_team.user_id:
@@ -931,10 +1486,59 @@ class Payment(models.Model):
 																						   	'user_id':'Sales Person',
 																						   })
 
+											# Seller Commission Information
+											if not line.product_id.seller_ids:
+												raise ValidationError(_('Please Define Vendor Details inside the Product'))
+											for seller in line.product_id.seller_ids:
+												if seller._is_commission:
+													for com_lines in seller.supplierinfo_commission_ids:
+														if seller.account_type == 'fixed_amount':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total': commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+														if seller.account_type == 'by_percentage':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															percent_amount = (amount * com_lines.supplier_commission) / 100
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+												else:
+													product_commission.create({
+														'partner_id':seller.name.id,
+														'product_id':line.product_id.id,
+													   	'sale_team_id':lines.team_id.id,
+													   	'member_id': record.sale_person.id,
+													   	'source_document':record.name,
+													   	'amount_total':seller.price,
+													   	'currency_id':self.env.user.company_id.currency_id.id,
+													   	'user_id':'Seller(vendor)',
+													   	'state': 'exception'
+													})
+
 									if calculation_method == 'sales_team':
 										for line in lines.invoice_line_ids:
-											for li in lines.team_id.sale_team_commission_ids:
-												if lines.team_id._is_commission:
+											if lines.team_id._is_commission:
+												for li in lines.team_id.sale_team_commission_ids:
 													if not record.sale_team.user_id:
 														raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 													if record.sale_team.user_id:
@@ -1000,10 +1604,61 @@ class Payment(models.Model):
 																						   	'user_id':'Sales Person',
 																						   })
 
+											# Seller Commission Information
+											if not line.product_id.seller_ids:
+												raise ValidationError(_('Please Define Vendor Details inside the Product'))
+											for seller in line.product_id.seller_ids:
+												if seller._is_commission:
+													for com_lines in seller.supplierinfo_commission_ids:
+														if seller.account_type == 'fixed_amount':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total': commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+														if seller.account_type == 'by_percentage':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															percent_amount = (amount * com_lines.supplier_commission) / 100
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+												else:
+													product_commission.create({
+														'partner_id':seller.name.id,
+														'product_id':line.product_id.id,
+													   	'sale_team_id':lines.team_id.id,
+													   	'member_id': record.sale_person.id,
+													   	'source_document':record.name,
+													   	'amount_total':seller.price,
+													   	'currency_id':self.env.user.company_id.currency_id.id,
+													   	'user_id':'Seller(vendor)',
+													   	'state': 'exception'
+													})
+
+
+
 									if calculation_method == 'product_categ':
 										for line in lines.invoice_line_ids:
-											for li in line.product_id.categ_id.sale_commission_ids:
-												if line.product_id.categ_id._is_commission:
+											if line.product_id.categ_id._is_commission:
+												for li in line.product_id.categ_id.sale_commission_ids:
 													if not record.sale_team.user_id:
 														raise ValidationError(_('Please Define Sale Team Manager as Team Leader in Sales Team'))
 													if record.sale_team.user_id:
@@ -1068,5 +1723,53 @@ class Payment(models.Model):
 																						   	'currency_id':record.currency_id.id or self.env.user.company_id.currency_id.id,
 																						   	'user_id':'Sales Person',
 																						   })
+											# Seller Commission Information
+											if not line.product_id.seller_ids:
+												raise ValidationError(_('Please Define Vendor Details inside the Product'))
+											for seller in line.product_id.seller_ids:
+												if seller._is_commission:
+													for com_lines in seller.supplierinfo_commission_ids:
+														if seller.account_type == 'fixed_amount':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															commission_amount = company.currency_id._convert(com_lines.supplier_commission_amount, record.currency_id, company, fields.Date.today())
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total': commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+														if seller.account_type == 'by_percentage':
+															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+															percent_amount = (amount * com_lines.supplier_commission) / 100
+															if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+																product_commission.create({
+																							'partner_id':seller.name.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': record.sale_person.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'Seller(vendor)',
+																						   	'state': 'exception'
+																						   })
+												else:
+													product_commission.create({
+														'partner_id':seller.name.id,
+														'product_id':line.product_id.id,
+													   	'sale_team_id':lines.team_id.id,
+													   	'member_id': record.sale_person.id,
+													   	'source_document':record.name,
+													   	'amount_total':seller.price,
+													   	'currency_id':self.env.user.company_id.currency_id.id,
+													   	'user_id':'Seller(vendor)',
+													   	'state': 'exception'
+													})
 
 		return res
