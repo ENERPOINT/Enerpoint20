@@ -4,7 +4,7 @@
 {
     "name" : "Sales commission based on Target Amount App",
     "author": "Edge Technologies",
-    "version" : "13.0.1.4",
+    "version" : "13.0.1.5",
     "live_test_url":'https://youtu.be/G14Y547coGE',
     "images":["static/description/main_screenshot.png"],
     'summary': 'Sale commission based on Target Sale order commission based on Target Sales order commission based on Target commission on sales commission based on invoice Commission based on target sale amount targeted amount sales commission based on payment commission',

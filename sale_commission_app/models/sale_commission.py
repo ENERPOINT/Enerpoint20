@@ -51,6 +51,9 @@ class CommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
@@ -77,6 +80,9 @@ class ProductCommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
@@ -103,6 +109,9 @@ class SaleTeamCommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
@@ -110,53 +119,3 @@ class SaleTeamCommissionRecord(models.Model):
 	crm_team_id = fields.Many2one('crm.team')
 	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],related='crm_team_id.account_type',string="Amount Type For Commission")
 
-
-class CrmTeam(models.Model):
-	_inherit = "crm.team"
-
-	_is_commission = fields.Boolean(string="Is Commission Product")
-	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],string="Amount Type For Commission")
-	sale_team_commission_ids = fields.One2many('sale.team.commission.record','crm_team_id')
-
-	@api.constrains('sale_team_commission_ids')
-	def _check_commission(self):
-		if self._is_commission:
-			if not self.sale_team_commission_ids:
-				raise ValidationError(_('Please enter Commission Values'))
-
-class SaleTeamCommissionRecord(models.Model):
-	_name = "sale.team.commission.record"
-	_description = "Commission for Sales Team"
-
-	initiate_total = fields.Float(string="Initiate Total", required=True)
-	end_total = fields.Float(string="End Total", required=True)
-	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
-	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
-	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
-	sale_person_commission_amount = fields.Float(string="Sales Person Commission Amount")
-	crm_team_id = fields.Many2one('crm.team')
-	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],related='crm_team_id.account_type',string="Amount Type For Commission")
-
-class ProductSupplierInfo(models.Model):
-	_inherit = "product.supplierinfo"
-
-	_is_commission = fields.Boolean(string="Is Commission Product")
-	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],string="Amount Type For Commission")
-	supplierinfo_commission_ids = fields.One2many('product.supplierinfo.commission.record','supplier_id')
-
-	@api.constrains('supplierinfo_commission_ids')
-	def _check_commission(self):
-		if self._is_commission:
-			if not self.sale_team_commission_ids:
-				raise ValidationError(_('Please enter Commission Values'))
-
-class ProductSupplierInfoCommissionRecord(models.Model):
-	_name = "product.supplierinfo.commission.record"
-	_description = "Commission for Sales Team"
-
-	initiate_total = fields.Float(string="Initiate Total", required=True)
-	end_total = fields.Float(string="End Total", required=True)
-	supplier_commission = fields.Float(string="Seller(Vendor) Commmission(%)")
-	supplier_commission_amount = fields.Float(string="Seller(Vendor) Commission Amount")
-	supplier_id = fields.Many2one('product.supplierinfo')
-	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],related='supplier_id.account_type',string="Amount Type For Commission")
