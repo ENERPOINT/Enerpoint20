@@ -57,9 +57,14 @@
                         </group>
                         <field name="sale_commission_ids" attrs="{'invisible':[('_is_commission','=',False)]}" context="{'default_account_type':account_type}">
                             <tree string="Sale Commission" editable="bottom">
+                                <field name="user_id"/>
                                 <field name="initiate_total"/>
                                 <field name="end_total"/>
                                 <field name="account_type" readonly="1"/>
+                                <field name="user_commission"
+                                    attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
+                                <field name="user_commission_amount" 
+                                    attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
                                 <field name="sales_manager_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="sales_person_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="manager_commission_amount" attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
@@ -86,9 +91,14 @@
                         </group>
                         <field name="product_commission_ids" attrs="{'invisible':[('_is_commission','=',False)]}" context="{'default_account_type':account_type}">
                             <tree string="Sale Commission" editable="bottom">
+                                <field name="user_id"/>
                                 <field name="initiate_total"/>
                                 <field name="end_total"/>
                                 <field name="account_type" readonly="1"/>
+                                <field name="user_commission"
+                                    attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
+                                <field name="user_commission_amount" 
+                                    attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
                                 <field name="sales_manager_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="sales_person_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="manager_commission_amount" attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
@@ -122,9 +132,14 @@
                         </group>
                         <field name="sale_team_commission_ids" attrs="{'invisible':[('_is_commission','=',False)]}" context="{'default_account_type':account_type}">
                             <tree string="Sale Commission" editable="bottom">
+                                <field name="user_id"/>
                                 <field name="initiate_total"/>
                                 <field name="end_total"/>
                                 <field name="account_type" readonly="1"/>
+                                <field name="user_commission"
+                                    attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
+                                <field name="user_commission_amount" 
+                                    attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
                                 <field name="sales_manager_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="sales_person_commission" attrs="{'readonly':[('account_type','=','fixed_amount')]}"/>
                                 <field name="manager_commission_amount" attrs="{'readonly':[('account_type','=', 'by_percentage')]}"/>
@@ -135,7 +150,6 @@
                 </xpath>
             </field>
         </record>
-
     </data>
 </odoo>
 

@@ -5,9 +5,13 @@ from odoo.exceptions import UserError, ValidationError
 class ResConfigSettings(models.TransientModel):
 	_inherit = "res.config.settings"
 
-	apply_sale_commission = fields.Selection([('sales_confirmation', 'Confirm Sale'),('invoice_validate', 'Validate Invoice'),('customer_payment', 'Register Payment')],string="Apply Commission On",default='sales_confirmation')
+	apply_sale_commission = fields.Selection([('sales_confirmation', 'Confirm Sale'),
+											  ('invoice_validate', 'Validate Invoice'),
+											  ('customer_payment', 'Register Payment')],string="Apply Commission On",default='sales_confirmation')
 	
-	calculation_method = fields.Selection([('sales_team','On Sales Team'),('product_categ','On Product Category'),('product','On Product')],string="Based on Calculation",default='sales_team')
+	calculation_method = fields.Selection([('sales_team','On Sales Team'),
+										   ('product_categ','On Product Category'),
+										   ('product','On Product')],string="Based on Calculation",default='sales_team')
 
 	def set_values(self):
 
@@ -47,6 +51,9 @@ class CommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
@@ -73,6 +80,9 @@ class ProductCommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
@@ -99,9 +109,13 @@ class SaleTeamCommissionRecord(models.Model):
 
 	initiate_total = fields.Float(string="Initiate Total", required=True)
 	end_total = fields.Float(string="End Total", required=True)
+	user_id = fields.Many2one('res.users', 'Users', required=True)
+	user_commission = fields.Float(string="User Commission(%)")
+	user_commission_amount = fields.Float(string="User Commission Amount")
 	sales_manager_commission = fields.Float(string="Sales Manager Commission(%)")
 	sales_person_commission = fields.Float(string="Sales Person Commmission(%)")
 	manager_commission_amount = fields.Float(string="Sales Manager Commission Amount")
 	sale_person_commission_amount = fields.Float(string="Sales Person Commission Amount")
 	crm_team_id = fields.Many2one('crm.team')
 	account_type = fields.Selection([('fixed_amount','Fixed Amount'),('by_percentage','By Percentage')],related='crm_team_id.account_type',string="Amount Type For Commission")
+

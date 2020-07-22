@@ -4,7 +4,7 @@
         <record id="sale_commission_personal_security_rule" model="ir.rule">
             <field name="name">Sale Commission Personal Rule </field>
             <field ref="model_sale_commission_line" name="model_id"/>
-            <field name="domain_force">['|',('member_id','=',user.id),('member_id','=',False)]</field>
+            <field name="domain_force">['|',('member_id','=',user.id),('partner_id.user_id','=',user.id)]</field>
             <field name="perm_unlink" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_read" eval="True"/>
