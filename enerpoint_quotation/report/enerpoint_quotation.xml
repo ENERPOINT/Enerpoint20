@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <record id="itadmin_sales_paperformat" model="report.paperformat">
+            <field name="name">CDFI Letter</field>
+            <field name="default" eval="True" />
+            <field name="format">Letter</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">40</field>
+            <field name="margin_bottom">40</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">30</field>
+            <field name="dpi">90</field>
+        </record>
+
+    <template id="itadmin_sale_external_layout_sales">
+            <!-- Multicompany -->
+            <t t-if="not o and doc">
+                <t t-set="o" t-value="doc" />
+            </t>
+            <t t-if="o and 'company_id' in o">
+                <t t-set="company" t-value="o.company_id"></t>
+            </t>
+            <t t-if="not o or not 'company_id' in o">
+                <t t-set="company" t-value="res_company"></t>
+            </t>
+
+        <div class="article o_report_layout_standard">
+            <t t-raw="0" />
+        </div>
+
+        <div class="header" style="height:50px;padding-top:10px;">
+            <!--EMPIEZA LOGO-->
+            <div class="row">
+               <div class="col-4">
+                    <img t-if="doc.company_id.logo" t-att-src="'data:image/png;base64,%s' % to_text(doc.company_id.logo)"
+                        style="max-height: 150px;max-width:150px;float:center;"/>
+                </div>
+                <!--TERMINA LOGO-->
+
+                <!--INFORMACIÓN DE EMPRESA-->
+                <div class="col-4" style="font-size:17px;text-align:center;">
+                    <div>
+                        <strong><span t-field="doc.company_id.partner_id.name" /></strong><br/>
+                        <span t-field="doc.company_id.partner_id.street" /> <span t-field="doc.company_id.partner_id.street2" /> <span t-field="doc.company_id.partner_id.zip" /><br/>
+                        <span t-field="doc.company_id.partner_id.city"/> <span t-field="doc.company_id.partner_id.state_id"/> <br/>
+                        Tel. <span t-field="doc.company_id.partner_id.phone" />
+                    </div>
+                </div>
+
+                <!--INFORMACIÓN DE PEDIDO-->
+                <div class="col-4" style="text-align:center;">
+                    <table class="table table-bordered" style="margin:0px;padding:0px;bordercolor:#8DC63F;">
+                        <thead style="background-color:#8DC63F;margin:0px;padding:0px;height:25px !important;" cellspacing="5">
+                            <t t-if="doc.state in ['draft', 'sent']">
+                                <tr style="color:white;padding-top:0px;">
+                                    <th class="text-center" style="font-size:30px;color:white;padding:2px;">Cotización</th>
+                                </tr>
+                            </t>
+
+                            <t t-if="doc.state not in ['draft', 'sent']">
+                                <tr style="color:white;padding-top:0px;">
+                                    <th class="text-center" style="font-size:25px;color:white;padding:2px;">Pedido de venta</th>
+                                </tr>
+                            </t>
+
+
+                        </thead>
+                        <tbody class="sale_tbody" cellspacing="5" style="height:25px !important;">
+                            <tr style="color:#8DC63F;">
+                                <td style="font-size:30px;padding:2px;">
+                                    # <span t-field="doc.name"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div class="footer">
+            <div style="border-bottom:3px solid #8DC63F;margin-bottom:5px;">
+            </div>
+            <div style="font-size:14px;">
+                <strong>TERMINOS Y CONDICIONES:</strong><br/>
+                <p>
+                   1-Todos los artículos incluidos en esta cotización deberán de ser revisados y autorizados por el cliente. Al ser autorizados
+                   dicha cotización, ENERPOINT SA. DE CV. no se hace responsable por omisiones, errores y/o faltantes en la misma.<br/>
+                   2-Esta cotización se expide en USD y el tipo de cambio del día del pago.<br/>
+                   3-La vigencia de este documento es de 10 días Hábiles y precios libres abordo.<br/>
+                   4-Favor de utilizar como referencia bancaria el número de pedido especificado en este documento.
+                </p>
+            </div>
+            <div class="text-muted" style="text-align:right;">
+                Page: <span class="page"/> / <span class="topage"/>
+            </div>
+            
+        </div>
+    </template>
+
+<template id="report_saleorder_document">
+    <t t-call="enerpoint_quotation.itadmin_sale_external_layout_sales">
+        <t t-set="doc" t-value="doc.with_context({'lang':doc.partner_id.lang})" />
+        <div class="page" style="border-top: 2px #3077B6; font-size:15px;">
+        
+
+            <!--TABLA INFORMACIÓN GENERAL-->
+            <div class="row" style="padding-top:50px;">
+                <div class="col-6" style="margin:0px;padding-right:5px;">
+                    <table class="table table-bordered" style="margin:0px;">
+                        <thead style="background-color:#8DC63F;">
+                            <tr style="color:white;">
+                                <th colspan="2" class="text-center" style="font-size:25px;padding:2px;">Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody" style="font-size:16px;" cellspacing="0">
+                                <tr>
+                                    <td style="width:20%;padding:2px;background-color:#CAD8E0;">
+                                        Nombre:
+                                    </td>
+                                    <td style="padding:2px;background-color:#CAD8E0;">
+                                        <span t-field="doc.partner_id.name"/>
+                                    </td>
+                                </tr>  
+                                <tr >
+                                    <td style="width:20%;padding:2px;background-color:#E4E7E8;">
+                                        RFC:
+                                    </td>
+                                    <td style="padding:2px;background-color:#E4E7E8;">
+                                        <span t-field="doc.partner_id.vat"/>
+                                    </td>
+                                </tr>  
+                                <tr >
+                                    <td style="width:20%;padding:2px;background-color:#CAD8E0;">
+                                        Teléfono:
+                                    </td>
+                                    <td style="padding:2px;background-color:#CAD8E0;">
+                                        <span t-field="doc.partner_id.phone"/>
+                                    </td>
+                                </tr>  
+                                <tr >
+                                    <td style="width:20%;padding:2px;background-color:#E4E7E8;">
+                                        Correo:
+                                    </td>
+                                    <td style="padding:2px;background-color:#E4E7E8;">
+                                        <span t-field="doc.partner_id.email"/>
+                                    </td>
+                                </tr>    
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-6" style="margin:0px;padding-left:5px;">
+                    <table class="table table-bordered" style="font-size:17px;margin:0px;">
+                        <thead style="background-color:#8DC63F;">
+                            <tr style="color:white;">
+                                <th class="text-center" style="font-size:25px;padding:2px;">Dirección fiscal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody" style="font-size:14px;text-align:center;">
+                                <tr style="background-color:#CAD8E0;">
+                                    <td style="height:75px;">
+                                        <span t-field="doc.partner_id.street"/> <span t-field="doc.partner_id.street2"/><br/>
+                                        <span t-field="doc.partner_id.city"/> <span t-field="doc.partner_id.state_id.name"/> <span t-field="doc.partner_id.zip"/> <span t-field="doc.partner_id.country_id.name"/><br/>
+                                        <span t-field="doc.partner_id.vat"/>
+                                    </td>
+                                </tr>
+
+                                 
+                        </tbody>
+                            
+                    </table>
+                </div>
+            </div>
+
+            <!--TERMINA TABLA DE INFORMACIÓN GENERAL-->
+
+            <div class="row">
+                <div class="col-5" style="margin:0px;padding-right:5px;">
+                    <table class="table table-bordered" style="margin:0px;">
+                        <thead style="background-color:#8DC63F;">
+                            <tr style="color:white;">
+                                <th class="text-center" style="font-size:25px;padding:2px;">Vendedor</th>
+                                <th class="text-center" style="font-size:25px;padding:2px;">Fecha de orden</th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody">
+                                <tr>
+                                    <td>
+                                        <span t-field="doc.user_id.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="doc.date_order"/> 
+                                    </td>
+                                </tr>  
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-3">
+                    
+                </div>
+                <div class="col-4">
+                    
+                </div>
+            </div>
+
+            <br/>
+
+            <!--TABLA DE INFORMACIÓN DE PRODUCTOS-->
+
+            <!-- Is there a discount on at least one line? -->
+
+            <table class="table table-condensed table-bordered" style="font-size:15px;height:50px;">
+                <thead style="display: table-header-group;">
+                    <tr style="page-break-inside: avoid;">
+                        <th class="text-left" style="width:20%;">IMAGEN DEL PRODUCTO</th>
+                        <th class="text-left" style="width:50%;">DESCRIPCIÓN</th>
+                        <th class="text-left">CANTIDAD</th>
+                        <th class="text-left">PRECIO UNITARIO</th>
+                        <th class="text-left">DESC. %</th>
+                        <th class="text-left">IMPORTE</th>
+                        <th class="text-left">MONEDA</th>
+                    </tr>
+                </thead>
+                <tbody style="display: table-row-group;" class="sale_tbody">
+
+                    <t t-set="current_subtotal" t-value="0"/>
+
+                    <t t-foreach="doc.order_line" t-as="line">
+
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+                        <tr style="page-break-inside: avoid;">
+
+                            <!--IMAGEN-->
+                            <td style="width:20%;">
+                                <img t-attf-src="data:image/*;base64,{{line.product_id.image_1920}}" style="width:100%;height:10%"/>
+                            </td>
+
+                            <!--DESCRIPCION-->
+                            <td style="width:50%;">
+                                <span t-field="line.name"/>
+                            </td>
+
+                            <!--CANTIDAD-->
+                            <td>
+                                <span t-field="line.product_uom_qty"/>
+                            </td>
+
+                            <!--PRECIO UNITARIO-->
+                            <td>
+                                <span t-field="line.price_unit"/>
+                            </td>
+
+                            <!--DESCUENTO-->
+                            <td>
+                                <span t-field="line.discount"/>
+                            </td>
+
+                            <!--IMPORTE-->
+                            <td style="background-color:#E4E7E8;">
+                                <span t-field="line.price_subtotal"/>
+                            </td>
+
+                            <!--MONEDA-->
+                            <td>
+                                <span t-field="doc.pricelist_id.currency_id"/>
+                            </td>
+                        </tr>  
+                    </t>
+                </tbody>
+            </table>
+
+
+
+            <!--TERMINA TABLA DE INFORMACIÓN DE PRODUCTOS-->
+
+            <!--INICIO DE TABLA SUBTOTAL Y TOTAL -->
+                     <!-- Is there a discount on at least one line? -->
+            <t t-set="display_discount" t-value="any([l.discount for l in doc.order_line])"/>
+
+            <div class="">
+
+                <div class="row" name="total">
+                    <div class="col-3"></div>
+                    <div class="col-4"></div>
+                    <div class="col-5">
+                        <table class="table table-bordered">
+
+                            <tr style="color:#8DC63F;padding:2px;">
+                                <td style="border-right:none;width:20%;"><strong>Subtotal</strong></td>
+                                <td class="text-right">
+                                    <span t-field="doc.amount_untaxed"/>
+                                </td>
+                            </tr>
+
+                            <t t-foreach="doc.amount_by_group" t-as="amount_by_group">
+                                <tr style="padding:2px;">
+                                    <t t-if="amount_by_group[3] == 1 and doc.amount_untaxed == amount_by_group[2]">
+                                        <td style="width:60%;">
+                                            <span t-esc="amount_by_group[0]"/>
+                                            <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/> </span>
+                                        </td>
+                                        <td style="width:60%;background-color:#E4E7E8;" class="text-right">
+                                            <span t-esc="amount_by_group[1]"
+                                                t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/>
+                                        </td>
+                                    </t>
+                                    <t t-else ="">
+                                        <td style="width:60%;">
+                                            <span t-esc="amount_by_group[0]"/> en <span t-field="doc.pricelist_id.currency_id"/>
+                                        </td>
+                                        <td class="text-right" style="background-color:#E4E7E8;">
+                                            <span t-esc="amount_by_group[1]"
+                                                t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </t>
+
+                            <tr style="background-color:#8DC63F;padding:2px;">
+                                <td style="border-right:none;width:20%;color:white;"><strong>Total</strong></td>
+                                <td style="color:white;" class="text-right">
+                                    <span t-field="doc.amount_total"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>  
+
+            <br/>
+
+            <t t-if="doc.note">
+                <div><span t-field="doc.note"/></div>
+            </t>
+
+            <!--TERMINA TABLA SUBTOTAL Y TOTAL-->
+
+            <!--TABLA DE BANCOS -->
+            <div class="row">
+                <div class="col-1"></div>
+
+                <div class="col-5" style="margin:0px;padding-right:5px;">
+                    <table class="table table-bordered" style="font-size:17px;margin:0px;">
+                        <thead>
+                            <tr style="background-color:#CAD8E0;">
+                                <th colspan="2" style="padding-left:150px;">MXN <img t-att-src="'/enerpoint_quotation/static/src/img/bbva.png'" style="max-width:75px;max-height:50px;float:right;"/></th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody" style="font-size:16px;" cellspacing="0">
+                                <tr style="background-color:#E4E7E8;">
+                                    <td style="width:25%;padding:2px;">
+                                        CUENTA:
+                                    </td>
+                                    <td style="padding:2px;">
+                                        <span>0112746808</span>
+                                    </td>
+                                </tr>  
+                                <tr style="background-color:#E4E7E8;">
+                                    <td style="width:25%;padding:2px;">
+                                        CLABE:
+                                    </td>
+                                    <td style="padding:2px;">
+                                        <span>0123 2000 11274680 85</span>
+                                    </td>
+                                </tr>   
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-5" style="margin:0px;padding-left:5px;">
+                    <table class="table table-bordered" style="font-size:17px;margin:0px;">
+                        <thead>
+                            <tr style="background-color:#CAD8E0;">
+                                <th colspan="2" style="padding-left:150px;">USD <img t-att-src="'/enerpoint_quotation/static/src/img/bbva.png'" style="max-width:75px;max-height:50px;float:right;"/></th>                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody" style="font-size:16px;" cellspacing="0">
+                                <tr style="background-color:#E4E7E8;">
+                                    <td style="width:15%;padding:2px;">
+                                        CUENTA:
+                                    </td>
+                                    <td style="padding:2px;">
+                                        <span>0113005267</span>
+                                    </td>
+                                </tr>  
+                                <tr style="background-color:#E4E7E8;">
+                                    <td style="width:15%;padding:2px;">
+                                        CLABE:
+                                    </td>
+                                    <td style="padding:2px;">
+                                        <span>0123 2000 11300526 79</span>
+                                    </td>
+                                </tr>  
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-1"></div>
+
+
+            <!--TERMINA TABLA DE BANCOS-->
+           
+
+            <div class="oe_structure"/>
+        </div>
+    </t>
+</template>
+
+
+<template id="sale.report_saleorder">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="enerpoint_quotation.report_saleorder_document" t-lang="doc.partner_id.lang"/>
+        </t>
+    </t>
+</template>
+
+<record id="sale.action_report_saleorder" model="ir.actions.report">
+    <field name="paperformat_id" ref="enerpoint_quotation.itadmin_sales_paperformat"/>
+</record>
+      <!-- <record id="sale.report_sale_order" model="sale.order" string="Custom Sales Order"
+            report_type="qweb-pdf" name="sale.report_saleorder" file="enerpoint_quotation.report_saleorder"
+             paperformat="enerpoint_quotation.paperformat_a4_landscape" /> -->
+
+
+
+</odoo>
