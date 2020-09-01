@@ -82,8 +82,5 @@
 			<field name="view_mode">tree,form</field>
 		</record>
 
-		<record id="group_show_commission_view" model="res.groups">
-        	<field name="name">Commission</field>
-    	</record>
     </data>
 </odoo>

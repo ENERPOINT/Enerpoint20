@@ -80,19 +80,24 @@
 		<menuitem id="commissions_root"
             name="Commission"
             parent="sale.sale_menu_root"
-            groups="sale_commission_app.group_show_commission_view"/>
+            groups="sale_commission_app.group_show_commission_view,sale_commission_app.group_sales_commission_user,sale_commission_app.group_sales_commission_manager"
+            />
 
 		<!-- Sale Commission Line Menu -->
 		<menuitem	id="sale_commission_line" 
 					name="Sale Commission Lines" 
 					parent="commissions_root"
-					action="sale_commission_line_action"/>
+					action="sale_commission_line_action"
+					groups="sale_commission_app.group_show_commission_view,sale_commission_app.group_sales_commission_user,sale_commission_app.group_sales_commission_manager"
+					/>
 
 		<!-- Commission Worksheet Menu -->
 		<menuitem	id="sale_commission_worksheets" 
 					name="Commission Worksheet" 
 					parent="commissions_root"
-					action="commission_worksheet_action"/>
+					action="commission_worksheet_action"
+					groups="sale_commission_app.group_show_commission_view,sale_commission_app.group_sales_commission_user,sale_commission_app.group_sales_commission_manager"
+					/>
     </data>
 </odoo>
 

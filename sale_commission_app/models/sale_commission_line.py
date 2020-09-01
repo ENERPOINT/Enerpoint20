@@ -105,34 +105,36 @@ class SaleOrder(models.Model):
 																			   	'state': 'draft'
 																			   })
 									# User Commission Information
-									if com_lines.user_id == self.env.user:
+									if com_lines.user_id:
 										if line.product_id.account_type == 'fixed_amount':
-											if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-												product_commission.create({
-																			'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																			'product_id':line.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': com_lines.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':com_lines.user_commission_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if com_lines.user_commission_amount > 0.0:
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': com_lines.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':com_lines.user_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 										if line.product_id.account_type == 'by_percentage':
-											percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
-											if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-												product_commission.create({
-																			'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																			'product_id':line.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': com_lines.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':percent_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if com_lines.user_commission > 0.0:
+												percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
+												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																				'product_id':line.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': com_lines.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 
 					if calculation_method == 'sales_team':
 						for lines in record.order_line:
@@ -201,34 +203,36 @@ class SaleOrder(models.Model):
 																			   	'state': 'draft'
 																			   })
 									# User Commission Information
-									if sale_com.user_id == self.env.user:
+									if sale_com.user_id:
 										if record.team_id.account_type == 'fixed_amount':
-											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-												product_commission.create({
-																			'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																			'product_id':lines.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': sale_com.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':sale_com.user_commission_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if sale_com.user_commission_amount > 0.0:
+												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+													product_commission.create({
+																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																				'product_id':lines.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': sale_com.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':sale_com.user_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 										if record.team_id.account_type == 'by_percentage':
-											percent_amount = (lines.price_subtotal * sale_com.user_commission) / 100
-											if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
-												product_commission.create({
-																			'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																			'product_id':lines.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': sale_com.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':percent_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if sale_com.user_commission > 0.0:
+												percent_amount = (lines.price_subtotal * sale_com.user_commission) / 100
+												if lines.price_subtotal >= sale_com.initiate_total and lines.price_subtotal <= sale_com.end_total:
+													product_commission.create({
+																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																				'product_id':lines.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': sale_com.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 
 					if calculation_method == 'product_categ':
 						for lines in record.order_line:
@@ -297,34 +301,36 @@ class SaleOrder(models.Model):
 																			   	'state': 'draft'
 																			   })
 									# User Commission Information
-									if com_lines.user_id == self.env.user:
+									if com_lines.user_id:
 										if lines.product_id.categ_id.account_type == 'fixed_amount':
-											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
-												product_commission.create({
-																			'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																			'product_id':lines.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': com_lines.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':com_lines.user_commission_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if com_lines.user_commission_amount > 0.0:
+												if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																				'product_id':lines.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': com_lines.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':com_lines.user_commission_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 										if lines.product_id.categ_id.account_type == 'by_percentage':
-											percent_amount = (lines.price_subtotal * com_lines.user_commission) / 100
-											if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
-												product_commission.create({
-																			'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																			'product_id':lines.product_id.id,
-																		   	'sale_team_id':record.team_id.id,
-																		   	'member_id': com_lines.user_id.id,
-																		   	'source_document':record.name,
-																		   	'amount_total':percent_amount,
-																		   	'currency_id':self.env.user.company_id.currency_id.id,
-																		   	'user_id':'User(Commission)',
-																		   	'state': 'draft'
-																		   })
+											if com_lines.user_commission > 0.0:
+												percent_amount = (lines.price_subtotal * com_lines.user_commission) / 100
+												if lines.price_subtotal >= com_lines.initiate_total and lines.price_subtotal <= com_lines.end_total:
+													product_commission.create({
+																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																				'product_id':lines.product_id.id,
+																			   	'sale_team_id':record.team_id.id,
+																			   	'member_id': com_lines.user_id.id,
+																			   	'source_document':record.name,
+																			   	'amount_total':percent_amount,
+																			   	'currency_id':self.env.user.company_id.currency_id.id,
+																			   	'user_id':'User(Commission)',
+																			   	'state': 'draft'
+																			   })
 		return res
 
 class Invoice(models.Model):
@@ -412,34 +418,36 @@ class Invoice(models.Model):
 																				   	'user_id':'Sales Person'
 																				   })
 										# User Commission Information
-										if com_lines.user_id == self.env.user:
-											if line.product_id.account_type == 'fixed_amount':
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':com_lines.user_commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+										if com_lines.user_id:
+											if com_lines.user_commission_amount > 0.0:
+												if line.product_id.account_type == 'fixed_amount':
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':com_lines.user_commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if line.product_id.account_type == 'by_percentage':
-												percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission > 0.0:
+													percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 
 							if calculation_method == 'sales_team':
 								if record.team_id._is_commission:
@@ -509,34 +517,36 @@ class Invoice(models.Model):
 																				   	'user_id':'Sales Person'
 																				   })
 										# User Commission Information
-										if sale_com.user_id == self.env.user:
+										if sale_com.user_id:
 											if record.team_id.account_type == 'fixed_amount':
-												if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': sale_com.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':sale_com.user_commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if sale_com.user_commission_amount > 0.0:
+													if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
+														product_commission.create({
+																					'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': sale_com.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':sale_com.user_commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if record.team_id.account_type == 'by_percentage':
-												percent_amount = (line.price_subtotal * sale_com.user_commission) / 100
-												if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': sale_com.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if sale_com.user_commission > 0.0:
+													percent_amount = (line.price_subtotal * sale_com.user_commission) / 100
+													if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
+														product_commission.create({
+																					'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': sale_com.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 
 
 							if calculation_method == 'product_categ':
@@ -605,34 +615,36 @@ class Invoice(models.Model):
 																				   	'user_id':'Sales Person'
 																				   })
 										# User Commission Information
-										if com_lines.user_id == self.env.user:
+										if com_lines.user_id:
 											if line.product_id.categ_id.account_type == 'fixed_amount':
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':com_lines.user_commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission_amount > 0.0:
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':com_lines.user_commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if line.product_id.categ_id.account_type == 'by_percentage':
-												percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission > 0.0:
+													percent_amount = (line.price_subtotal * com_lines.user_commission) / 100
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 
 					else:
 						for line in record.invoice_line_ids:
@@ -711,37 +723,39 @@ class Invoice(models.Model):
 																				   	'user_id':'Sales Person'
 																				   })
 										# User Commission Information
-										if com_lines.user_id == self.env.user:
+										if com_lines.user_id:
 											if line.product_id.account_type == 'fixed_amount':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												commission_amount = company.currency_id._convert(com_lines.user_commission_amount, record.currency_id, company, fields.Date.today())
-												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission_amount > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													commission_amount = company.currency_id._convert(com_lines.user_commission_amount, record.currency_id, company, fields.Date.today())
+													if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if line.product_id.account_type == 'by_percentage':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												percent_amount = (amount * com_lines.user_commission) / 100
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													percent_amount = (amount * com_lines.user_commission) / 100
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 
 							if calculation_method == 'sales_team':
 								if record.team_id._is_commission:
@@ -819,37 +833,39 @@ class Invoice(models.Model):
 																				   })
 
 										# User Commission Information
-										if sale_com.user_id == self.env.user:
+										if sale_com.user_id:
 											if record.team_id.account_type == 'fixed_amount':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												commission_amount = company.currency_id._convert(sale_com.user_commission_amount, record.currency_id, company, fields.Date.today())
-												if amount >= sale_com.initiate_total and amount <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': sale_com.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if sale_com.user_commission_amount > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													commission_amount = company.currency_id._convert(sale_com.user_commission_amount, record.currency_id, company, fields.Date.today())
+													if amount >= sale_com.initiate_total and amount <= sale_com.end_total:
+														product_commission.create({
+																					'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': sale_com.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if record.team_id.account_type == 'by_percentage':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												percent_amount = (amount * sale_com.user_commission) / 100
-												if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
-													product_commission.create({
-																				'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': sale_com.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if sale_com.user_commission > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													percent_amount = (amount * sale_com.user_commission) / 100
+													if line.price_subtotal >= sale_com.initiate_total and line.price_subtotal <= sale_com.end_total:
+														product_commission.create({
+																					'partner_id': sale_com.user_id and sale_com.user_id.partner_id and sale_com.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': sale_com.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 
 							if calculation_method == 'product_categ':
 								if line.product_id.categ_id._is_commission:
@@ -925,37 +941,39 @@ class Invoice(models.Model):
 																				   	'user_id':'Sales Person'
 																				   })
 										# User Commission Information
-										if com_lines.user_id == self.env.user:
+										if com_lines.user_id:
 											if line.product_id.categ_id.account_type == 'fixed_amount':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												commission_amount = company.currency_id._convert(com_lines.user_commission_amount, record.currency_id, company, fields.Date.today())
-												if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':commission_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission_amount > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													commission_amount = company.currency_id._convert(com_lines.user_commission_amount, record.currency_id, company, fields.Date.today())
+													if amount >= com_lines.initiate_total and amount <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':commission_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 											if line.product_id.categ_id.account_type == 'by_percentage':
-												amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
-												percent_amount = (amount * com_lines.user_commission) / 100
-												if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
-													product_commission.create({
-																				'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
-																				'product_id':line.product_id.id,
-																			   	'sale_team_id':record.team_id.id,
-																			   	'member_id': com_lines.user_id.id,
-																			   	'source_document':record.name,
-																			   	'amount_total':percent_amount,
-																			   	'currency_id':self.env.user.company_id.currency_id.id,
-																			   	'user_id':'User(Commission)',
-																			   	'state': 'exception'
-																			   })
+												if com_lines.user_commission > 0.0:
+													amount = company.currency_id._convert(line.price_subtotal, record.currency_id, company, fields.Date.today())
+													percent_amount = (amount * com_lines.user_commission) / 100
+													if line.price_subtotal >= com_lines.initiate_total and line.price_subtotal <= com_lines.end_total:
+														product_commission.create({
+																					'partner_id': com_lines.user_id and com_lines.user_id.partner_id and com_lines.user_id.partner_id.id,
+																					'product_id':line.product_id.id,
+																				   	'sale_team_id':record.team_id.id,
+																				   	'member_id': com_lines.user_id.id,
+																				   	'source_document':record.name,
+																				   	'amount_total':percent_amount,
+																				   	'currency_id':self.env.user.company_id.currency_id.id,
+																				   	'user_id':'User(Commission)',
+																				   	'state': 'exception'
+																				   })
 		return res
 
 class Payment(models.Model):
@@ -1045,34 +1063,36 @@ class Payment(models.Model):
 																						   	'user_id':'Sales Person'
 																						   })
 												# User Commission Information
-												if li.user_id == self.env.user:
+												if li.user_id:
 													if line.product_id.account_type == 'fixed_amount':
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':li.user_commission_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission_amount > 0.0:
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':li.user_commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 													if line.product_id.account_type == 'by_percentage':
-														percent_amount = (record.amount * li.user_commission) / 100
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':percent_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission > 0.0:
+															percent_amount = (record.amount * li.user_commission) / 100
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 
 								if calculation_method == 'sales_team':
 									for line in lines.invoice_line_ids:
@@ -1143,34 +1163,36 @@ class Payment(models.Model):
 																						   	'user_id':'Sales Person'
 																						   })
 												# User Commission Information
-												if li.user_id == self.env.user:
+												if li.user_id:
 													if lines.team_id.account_type == 'fixed_amount':
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':li.user_commission_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission_amount > 0.0:
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':li.user_commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 													if lines.team_id.account_type == 'by_percentage':
-														percent_amount = (record.amount * li.user_commission) / 100
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':percent_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission > 0.0:
+															percent_amount = (record.amount * li.user_commission) / 100
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 								if calculation_method == 'product_categ':
 									for line in lines.invoice_line_ids:
 										if line.product_id.categ_id._is_commission:
@@ -1240,34 +1262,36 @@ class Payment(models.Model):
 																						   	'user_id':'Sales Person',
 																						   })
 												# User Commission Information
-												if li.user_id == self.env.user:
+												if li.user_id:
 													if line.product_id.categ_id.account_type == 'fixed_amount':
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':li.user_commission_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission_amount > 0.0:
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':li.user_commission_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 													if line.product_id.categ_id.account_type == 'by_percentage':
-														percent_amount = (record.amount * li.user_commission) / 100
-														if record.amount >= li.initiate_total and record.amount <= li.end_total:
-															product_commission.create({
-																						'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																						'product_id':line.product_id.id,
-																					   	'sale_team_id':lines.team_id.id,
-																					   	'member_id': li.user_id.id,
-																					   	'source_document':record.name,
-																					   	'amount_total':percent_amount,
-																					   	'currency_id':self.env.user.company_id.currency_id.id,
-																					   	'user_id':'User(Commission)',
-																					   	'state': 'exception'
-																					   })
+														if li.user_commission > 0.0:
+															percent_amount = (record.amount * li.user_commission) / 100
+															if record.amount >= li.initiate_total and record.amount <= li.end_total:
+																product_commission.create({
+																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																							'product_id':line.product_id.id,
+																						   	'sale_team_id':lines.team_id.id,
+																						   	'member_id': li.user_id.id,
+																						   	'source_document':record.name,
+																						   	'amount_total':percent_amount,
+																						   	'currency_id':self.env.user.company_id.currency_id.id,
+																						   	'user_id':'User(Commission)',
+																						   	'state': 'exception'
+																						   })
 						else:
 							if apply_sale_commission == 'customer_payment':
 								for lines in record.invoice_ids:
@@ -1348,37 +1372,39 @@ class Payment(models.Model):
 																							   })
 
 													# User Commission Information
-													if li.user_id == self.env.user:
+													if li.user_id :
 														if line.product_id.account_type == 'fixed_amount':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total': commission_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission_amount > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total': commission_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 														if line.product_id.account_type == 'by_percentage':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															percent_amount = (amount * li.user_commission) / 100
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total':percent_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																percent_amount = (amount * li.user_commission) / 100
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total':percent_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 									if calculation_method == 'sales_team':
 										for line in lines.invoice_line_ids:
 											if lines.team_id._is_commission:
@@ -1454,37 +1480,39 @@ class Payment(models.Model):
 																							   	'user_id':'Sales Person',
 																							   })
 													# User Commission Information
-													if li.user_id == self.env.user:
+													if li.user_id :
 														if lines.team_id.account_type == 'fixed_amount':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total': commission_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission_amount > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total': commission_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 														if lines.team_id.account_type == 'by_percentage':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															percent_amount = (amount * li.user_commission) / 100
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total':percent_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																percent_amount = (amount * li.user_commission) / 100
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total':percent_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 
 									if calculation_method == 'product_categ':
 										for line in lines.invoice_line_ids:
@@ -1561,36 +1589,38 @@ class Payment(models.Model):
 																							   	'user_id':'Sales Person',
 																							   })
 													# User Commission Information
-													if li.user_id == self.env.user:
+													if li.user_id:
 														if line.product_id.categ_id.account_type == 'fixed_amount':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total': commission_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission_amount > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																commission_amount = company.currency_id._convert(li.user_commission_amount, record.currency_id, company, fields.Date.today())
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total': commission_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 														if line.product_id.categ_id.account_type == 'by_percentage':
-															amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
-															percent_amount = (amount * li.user_commission) / 100
-															if amount >= li.initiate_total and amount <= li.end_total:
-																product_commission.create({
-																							'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
-																							'product_id':line.product_id.id,
-																						   	'sale_team_id':lines.team_id.id,
-																						   	'member_id': li.user_id.id,
-																						   	'source_document':record.name,
-																						   	'amount_total':percent_amount,
-																						   	'currency_id':self.env.user.company_id.currency_id.id,
-																						   	'user_id':'User(Commission)',
-																						   	'state': 'exception'
-																						   })
+															if li.user_commission > 0.0:
+																amount = company.currency_id._convert(record.amount, record.currency_id, company, fields.Date.today())
+																percent_amount = (amount * li.user_commission) / 100
+																if amount >= li.initiate_total and amount <= li.end_total:
+																	product_commission.create({
+																								'partner_id': li.user_id and li.user_id.partner_id and li.user_id.partner_id.id,
+																								'product_id':line.product_id.id,
+																							   	'sale_team_id':lines.team_id.id,
+																							   	'member_id': li.user_id.id,
+																							   	'source_document':record.name,
+																							   	'amount_total':percent_amount,
+																							   	'currency_id':self.env.user.company_id.currency_id.id,
+																							   	'user_id':'User(Commission)',
+																							   	'state': 'exception'
+																							   })
 
 		return res
